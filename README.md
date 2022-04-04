@@ -1,1 +1,1 @@
-# -thinknetica_golang_core
+# thinknetica_golang_core
