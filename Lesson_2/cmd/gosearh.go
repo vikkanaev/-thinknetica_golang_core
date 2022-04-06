@@ -6,8 +6,8 @@ import (
 	"log"
 	"strings"
 
-	"thinknetica_golang_core/pkg/crawler"
-	"thinknetica_golang_core/pkg/crawler/spider"
+	"thinknetica_golang_core/Lesson_2/pkg/crawler"
+	"thinknetica_golang_core/Lesson_2/pkg/crawler/spider"
 )
 
 // Сервер Интернет-поисковика GoSearch.
@@ -16,25 +16,24 @@ type gosearch struct {
 
 	sites []string
 	depth int
-	addr  string
 }
 
 func main() {
-	req := flags()
-	sercher := new()
+	q := query()
+	searcher := new()
 
-	res, err := serch(*sercher)
+	res, err := searcher.search()
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	if req != "" {
-		output(req, res)
+	if q != "" {
+		output(q, res)
 	}
 }
 
-func flags() string {
+func query() string {
 	var request string
 	flag.StringVar(&request, "s", "", "serch keyword")
 	flag.Parse()
@@ -47,11 +46,12 @@ func new() *gosearch {
 	gs.scanner = spider.New()
 	gs.sites = []string{"https://go.dev", "https://golang.org/"}
 	gs.depth = 2
-	gs.addr = ":80"
 	return &gs
 }
 
-func serch(s gosearch) (data []crawler.Document, err error) {
+// Для единобразия с 'func new() *gosearch' использую указатель на gosearch.
+// Тут можно использовать и значение, потому что метод ничего не меняет(getter)
+func (s *gosearch) search() (data []crawler.Document, err error) {
 	for _, site := range s.sites {
 		res, e := s.scanner.Scan(site, s.depth)
 		if e != nil {
