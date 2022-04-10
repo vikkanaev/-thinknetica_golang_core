@@ -4,32 +4,44 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 
-	"thinknetica_golang_core/Lesson_2/pkg/crawler"
-	"thinknetica_golang_core/Lesson_2/pkg/crawler/spider"
+	"thinknetica_golang_core/Lesson_3/pkg/crawler"
+	"thinknetica_golang_core/Lesson_3/pkg/crawler/spider"
+	"thinknetica_golang_core/Lesson_3/pkg/index"
 )
 
 // Сервер Интернет-поисковика GoSearch.
 type gosearch struct {
 	scanner crawler.Interface
+	index   index.Index
 
 	sites []string
 	depth int
+
+	// data это хранилище документов и его прям просится вынести в отдельный пакет.
+	// не делаю это только из-за требования "решить задание максимально просто"
+	data []crawler.Document
+}
+
+type notFoundErr struct {
+	code int
 }
 
 func main() {
 	q := query()
 	searcher := new()
 
-	res, err := searcher.search()
+	err := searcher.scan()
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
 	if q != "" {
-		output(q, res)
+		docs := searcher.search(q)
+		output(q, docs)
 	}
 }
 
@@ -44,14 +56,15 @@ func query() string {
 func new() *gosearch {
 	gs := gosearch{}
 	gs.scanner = spider.New()
+	gs.index = *index.New()
 	gs.sites = []string{"https://go.dev", "https://golang.org/"}
 	gs.depth = 2
 	return &gs
 }
 
-// Для единобразия с 'func new() *gosearch' использую указатель на gosearch.
-// Тут можно использовать и значение, потому что метод ничего не меняет(getter)
-func (s *gosearch) search() (data []crawler.Document, err error) {
+// сканирует сайты и помещает данные в индекс и хранилище документов
+func (s *gosearch) scan() (err error) {
+	var data []crawler.Document
 	for _, site := range s.sites {
 		res, e := s.scanner.Scan(site, s.depth)
 		if e != nil {
@@ -59,15 +72,43 @@ func (s *gosearch) search() (data []crawler.Document, err error) {
 			break
 		}
 		data = append(data, res...)
+		s.index.Add(data)
 	}
-	return data, err
+	s.data = data
+	return err
 }
 
-func output(req string, data []crawler.Document) {
-	fmt.Println("Show results for:", req)
-	for _, d := range data {
-		if strings.Contains(strings.ToLower(d.Title), req) {
+// ищет заданное слово по индексу и возвращает совпавщие документы
+func (s *gosearch) search(req string) []crawler.Document {
+	var docs []crawler.Document
+	for _, id := range s.index.Search(req) {
+		d, e := s.document(id)
+		if e.code == 0 {
+			docs = append(docs, d)
+		}
+	}
+	return docs
+}
+
+// производить поиск документа по id в хранилище документов методом бинарного поиска
+func (s *gosearch) document(id int) (doc crawler.Document, err notFoundErr) {
+	i := sort.Search(len(s.data), func(i int) bool { return s.data[i].ID >= id })
+	if i < len(s.data) && s.data[i].ID == id {
+		doc = s.data[i]
+	} else {
+		err.code = -1
+	}
+	return doc, err
+}
+
+// выводит конечный результат
+func output(req string, docs []crawler.Document) {
+	if len(docs) > 0 {
+		fmt.Println("Show results for:", req)
+		for _, d := range docs {
 			fmt.Printf("Document: '%s' (%s)\n", d.Title, d.URL)
 		}
+	} else {
+		fmt.Println("Nothing found for:", req)
 	}
 }
