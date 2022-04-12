@@ -29,16 +29,19 @@ type notFoundErr struct {
 	code int
 }
 
-func main() {
-	q := query()
-	searcher := new()
+func (e *notFoundErr) Error() string {
+	return fmt.Sprintf("%d", e.code)
+}
 
+func main() {
+	searcher := new()
 	err := searcher.scan()
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
+	q := query()
 	if q != "" {
 		docs := searcher.search(q)
 		output(q, docs)
@@ -79,11 +82,10 @@ func (s *gosearch) scan() (err error) {
 }
 
 // ищет заданное слово по индексу и возвращает совпавщие документы
-func (s *gosearch) search(req string) []crawler.Document {
-	var docs []crawler.Document
+func (s *gosearch) search(req string) (docs []crawler.Document) {
 	for _, id := range s.index.Search(req) {
 		d, e := s.document(id)
-		if e.code == 0 {
+		if e.Error() == "0" {
 			docs = append(docs, d)
 		}
 	}
@@ -91,14 +93,17 @@ func (s *gosearch) search(req string) []crawler.Document {
 }
 
 // производить поиск документа по id в хранилище документов методом бинарного поиска
-func (s *gosearch) document(id int) (doc crawler.Document, err notFoundErr) {
+func (s *gosearch) document(id int) (crawler.Document, error) {
+	var doc crawler.Document
+	var err notFoundErr
+
 	i := sort.Search(len(s.data), func(i int) bool { return s.data[i].ID >= id })
 	if i < len(s.data) && s.data[i].ID == id {
 		doc = s.data[i]
 	} else {
 		err.code = -1
 	}
-	return doc, err
+	return doc, &err
 }
 
 // выводит конечный результат
