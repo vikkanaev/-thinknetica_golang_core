@@ -3,7 +3,6 @@ package storage
 import (
 	"encoding/json"
 	"io"
-	"log"
 	"os"
 	"thinknetica_golang_core/Lesson_5-io/pkg/crawler"
 )
@@ -18,16 +17,17 @@ type storage struct {
 }
 
 // Создает новый объект хранилища и возвращает на него указатель
-func New() *storage {
+func New() (*storage, error) {
 	var st storage
+	var err error
 
 	f, err := os.OpenFile("./storage.txt", os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
-		log.Fatal(err)
+		return &st, err
 	}
 
 	st.file = f
-	return &st
+	return &st, err
 }
 
 // Считывает раннее сохраненные данные из постоянного хранилиша
@@ -36,7 +36,6 @@ func (st *storage) Retrieve() ([]crawler.Document, error) {
 
 	docsJson, err := get(st.file)
 	if err != nil {
-		log.Fatal(err)
 		return docs, err
 	}
 
