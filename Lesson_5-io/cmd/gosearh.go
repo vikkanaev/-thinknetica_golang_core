@@ -26,6 +26,7 @@ type gosearch struct {
 
 type notFoundErr struct {
 	code int
+	msg  string
 }
 
 func (e *notFoundErr) Error() string {
@@ -33,7 +34,11 @@ func (e *notFoundErr) Error() string {
 }
 
 func main() {
-	s := new()
+	s, err := new()
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	docs, err := s.storage.Retrieve()
 	if err != nil {
@@ -54,7 +59,12 @@ func main() {
 
 	q := query()
 	if q != "" {
-		docs := s.search(q)
+		docs, err := s.search(q)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
 		output(q, docs)
 	}
 }
@@ -68,14 +78,18 @@ func query() string {
 }
 
 // Функция new создаёт объект и поисковика и возвращает указатель на него.
-func new() *gosearch {
+func new() (*gosearch, error) {
 	gs := gosearch{}
 	gs.scanner = spider.New()
 	gs.index = *index.New()
 	gs.sites = []string{"https://go.dev", "https://golang.org/"}
 	gs.depth = 2
-	gs.storage = storage.New()
-	return &gs
+	storage, err := storage.New()
+	if err != nil {
+		return &gs, err
+	}
+	gs.storage = storage
+	return &gs, err
 }
 
 // Сканирует сайты и помещает данные в индекс и хранилище документов
@@ -99,14 +113,19 @@ func (s *gosearch) scan() (err error) {
 }
 
 // Ищет заданное слово по индексу и возвращает совпавщие документы
-func (s *gosearch) search(req string) (docs []crawler.Document) {
+func (s *gosearch) search(req string) (docs []crawler.Document, err error) {
 	for _, id := range s.index.Search(req) {
 		d, e := s.document(id)
-		if e.Error() == "0" {
-			docs = append(docs, d)
+		if er, ok := e.(*notFoundErr); ok {
+			if er.code != 0 {
+				return docs, er
+			}
+		} else {
+			return docs, er
 		}
+		docs = append(docs, d)
 	}
-	return docs
+	return docs, err
 }
 
 // Производить поиск документа по id в хранилище документов методом бинарного поиска
@@ -119,6 +138,7 @@ func (s *gosearch) document(id int) (crawler.Document, error) {
 		doc = s.data[i]
 	} else {
 		err.code = -1
+		err.msg = "Doc not found"
 	}
 	return doc, &err
 }
