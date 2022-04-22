@@ -30,33 +30,42 @@ type notFoundErr struct {
 }
 
 func (e *notFoundErr) Error() string {
-	return fmt.Sprintf("%d", e.code)
+	return e.msg
 }
 
 func main() {
+	// Инициируем поисковик
 	s, err := new()
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
+	// Пробуем прочитать данные из постоянного хранилища
 	docs, err := s.storage.Retrieve()
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	if len(docs) > 0 {
-		s.data = docs
-		s.index.Add(docs)
-	} else {
-		err = s.scan()
+	// Принимаем решение нужно ли сканировать сайты
+	needScanning := !(len(docs) > 0)
+
+	// Если данных в хранилище нет - запускаем сканирование сайтов
+	if needScanning {
+		docs, err = s.scan()
 		if err != nil {
 			log.Println(err)
 			return
 		}
 	}
 
+	// Построение индекса
+	s.index.Add(docs)
+	// Добавление данных в локальное хранилище для быстрого поиска
+	s.data = docs
+
+	// Чтение поискового запроса из параметров вызова
 	q := query()
 	if q != "" {
 		docs, err := s.search(q)
@@ -65,7 +74,17 @@ func main() {
 			return
 		}
 
+		// Отображение результатов поиска
 		output(q, docs)
+	}
+
+	// Если было сканирование сайтов, то данные надо записать на диск
+	if needScanning {
+		err = s.storage.Persist(s.data)
+		if err != nil {
+			log.Println(err)
+			return
+		}
 	}
 }
 
@@ -92,28 +111,24 @@ func new() (*gosearch, error) {
 	return &gs, err
 }
 
-// Сканирует сайты и помещает данные в индекс и хранилище документов
-func (s *gosearch) scan() (err error) {
+// Сканирует сайты
+func (s *gosearch) scan() ([]crawler.Document, error) {
 	var data []crawler.Document
+	var err error
+
 	for _, site := range s.sites {
 		res, e := s.scanner.Scan(site, s.depth)
 		if e != nil {
-			return e
+			return nil, e
 		}
 		data = append(data, res...)
-		s.index.Add(data)
 	}
-	s.data = data
-	err = s.storage.Persist(s.data)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	return err
+	return data, err
 }
 
 // Ищет заданное слово по индексу и возвращает совпавщие документы
 func (s *gosearch) search(req string) (docs []crawler.Document, err error) {
+	// TODO добавить сортировку по id
 	for _, id := range s.index.Search(req) {
 		d, e := s.document(id)
 		if er, ok := e.(*notFoundErr); ok {

@@ -36,7 +36,7 @@ func (st *storage) Retrieve() ([]crawler.Document, error) {
 
 	docsJson, err := get(st.file)
 	if err != nil {
-		return docs, err
+		return nil, err
 	}
 
 	json.Unmarshal([]byte(docsJson), &docs)
@@ -45,6 +45,7 @@ func (st *storage) Retrieve() ([]crawler.Document, error) {
 }
 
 // Сохраният данные в постоянное хранилище
+// TODO сделать что бы персист удалял старые данные перед записью новых
 func (st *storage) Persist(docs []crawler.Document) error {
 	b, err := json.Marshal(docs)
 	if err != nil {
