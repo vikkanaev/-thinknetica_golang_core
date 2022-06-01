@@ -26,8 +26,7 @@ func TestMain(m *testing.M) {
 
 	// создаем тестовый маршрутизатор
 	testMux = mux.NewRouter()
-	testMux.HandleFunc("/docs", wa.docsHandler).Methods(http.MethodGet)
-	testMux.HandleFunc("/index", wa.indexHandler).Methods(http.MethodGet)
+	New(testMux, &i, docs)
 	m.Run()
 }
 
