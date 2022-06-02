@@ -1,8 +1,7 @@
 -- выборка фильмов с названием студии;
 Select films.title, studios.title
 FROM films
-JOIN films_studios ON films.id = films_studios.film_id
-JOIN studios ON studios.id = films_studios.studio_id;
+JOIN studios ON studios.id = films.studio_id;
 
 --      title     |       title
 -- ---------------+--------------------

@@ -1,11 +1,9 @@
-DROP TABLE IF EXISTS films_certifications;
-DROP TABLE IF EXISTS films_studios;
 DROP TABLE IF EXISTS films_directors;
 DROP TABLE IF EXISTS films_actors;
-DROP TABLE IF EXISTS certifications;
-DROP TABLE IF EXISTS studios;
 DROP TABLE IF EXISTS films;
+DROP TABLE IF EXISTS studios;
 DROP TABLE IF EXISTS persons;
+DROP TYPE IF EXISTS certification;
 
 -- persons - люди
 CREATE TABLE persons (
@@ -16,14 +14,8 @@ CREATE TABLE persons (
     UNIQUE(first_name, last_name, year_of_birth) 
 );
 
--- films - фильмы
-CREATE TABLE films (
-    id BIGSERIAL PRIMARY KEY, -- первичный ключ
-    title TEXT NOT NULL, -- название
-    year INTEGER DEFAULT 0, -- Год выхода не может быть меньше 1800
-    box_office INTEGER DEFAULT 0,
-    UNIQUE(title, year) -- В один год не может быть двух фильмов с одинаковым названием.
-);
+-- рейтинги фильмов
+CREATE TYPE certification AS ENUM ('PG-10', 'PG-13', 'PG-18');
 
 -- Студии
 CREATE TABLE studios (
@@ -32,11 +24,15 @@ CREATE TABLE studios (
   UNIQUE(title)
 );
 
--- рейтинги фильмов
-CREATE TABLE certifications (
-  id BIGSERIAL PRIMARY KEY, -- первичный ключ
-  title TEXT NOT NULL, -- название рейтинга
-  UNIQUE(title)
+-- films - фильмы
+CREATE TABLE films (
+    id BIGSERIAL PRIMARY KEY, -- первичный ключ
+    title TEXT NOT NULL, -- название
+    year INTEGER DEFAULT 0, -- Год выхода не может быть меньше 1800
+    box_office INTEGER DEFAULT 0,
+    studio_id INTEGER REFERENCES studios(id) ON DELETE CASCADE ON UPDATE CASCADE DEFAULT 0,
+    certification certification,
+    UNIQUE(title, year) -- В один год не может быть двух фильмов с одинаковым названием.
 );
 
 -- связь между фильмами и актерами
@@ -53,21 +49,5 @@ CREATE TABLE films_directors (
     film_id BIGINT NOT NULL REFERENCES films(id),
     director_id INTEGER NOT NULL REFERENCES persons(id),
     UNIQUE(film_id, director_id)
-);
-
--- связь между фильмами и студиями
-CREATE TABLE films_studios (
-    id BIGSERIAL PRIMARY KEY, -- первичный ключ
-    film_id BIGINT NOT NULL REFERENCES films(id),
-    studio_id INTEGER NOT NULL REFERENCES studios(id),
-    UNIQUE(film_id, studio_id)
-);
-
--- связь между фильмами и рейтингами
-CREATE TABLE films_certifications (
-    id BIGSERIAL PRIMARY KEY, -- первичный ключ
-    film_id BIGINT NOT NULL REFERENCES films(id),
-    certification_id INTEGER NOT NULL REFERENCES certifications(id),
-    UNIQUE(film_id, certification_id)
 );
 
