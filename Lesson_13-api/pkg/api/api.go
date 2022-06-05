@@ -16,16 +16,16 @@ type API struct {
 }
 
 // New создаёт объект API.
-func New(r *mux.Router) *API {
+func New(r *mux.Router, d []crawler.Document) *API {
 	api := API{
 		router: r,
+		data:   d,
 	}
 	return &api
 }
 
 // Endpoints регистрирует конечные точки API.
-func (api *API) Endpoints(d []crawler.Document) {
-	api.data = d
+func (api *API) Endpoints() {
 	api.router.HandleFunc("/api/v1/docs", api.docs).Methods(http.MethodGet, http.MethodOptions)
 	api.router.HandleFunc("/api/v1/docs/{id}", api.doc).Methods(http.MethodGet, http.MethodOptions)
 	api.router.HandleFunc("/api/v1/docs/{id}", api.delDoc).Methods(http.MethodDelete, http.MethodOptions)

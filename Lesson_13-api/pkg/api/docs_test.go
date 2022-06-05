@@ -171,7 +171,7 @@ func TestAPI_updateDoc(t *testing.T) {
 		Title: "Yandex",
 	}
 	payload, _ := json.Marshal(doc)
-	req := httptest.NewRequest(http.MethodPatch, "/api/v1/docs/1", bytes.NewBuffer(payload))
+	req := httptest.NewRequest(http.MethodPatch, "/api/v1/docs/2", bytes.NewBuffer(payload))
 	rr := httptest.NewRecorder()
 	api.router.ServeHTTP(rr, req)
 	if !(rr.Code == http.StatusOK) {
