@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"thinknetica_golang_core/Lesson_16-DB-App/pkg/storage"
 	"thinknetica_golang_core/Lesson_16-DB-App/pkg/storage/postgres"
 )
@@ -12,21 +13,35 @@ type app struct {
 	context context.Context
 }
 
-func new() *app {
+func new(conn string) (*app, error) {
 	app := app{}
+	var err error
+
 	app.context = context.Background()
-	app.storage = postgres.New(app.context)
-	return &app
+	app.storage, err = postgres.New(app.context, conn)
+	if err != nil {
+		fmt.Print(err)
+		return nil, err
+	}
+
+	return &app, err
 }
 
 func main() {
-	a := new()
+	pwd := os.Getenv("go_thinknetica_films_password")
+	conn := "postgres://postgres:" + pwd + "@localhost/go_thinknetica_films"
+	a, err := new(conn)
+	if err != nil {
+		fmt.Print(err)
+		return
+	}
+
 	// Не забываем очищать ресурсы и закрывать соединения
 	defer a.storage.Close()
 
 	// Добавление фильмов
 	films := []storage.Film{{Title: "Generation Pi", Year: 1999, StudioId: 1}}
-	err := a.storage.AddFilms(films)
+	err = a.storage.AddFilms(films)
 	if err != nil {
 		fmt.Print(err)
 		return

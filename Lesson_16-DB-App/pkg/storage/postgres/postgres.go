@@ -3,8 +3,6 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
 	"thinknetica_golang_core/Lesson_16-DB-App/pkg/storage"
 
 	"github.com/jackc/pgx/v4"
@@ -16,18 +14,19 @@ type PG struct {
 	db  *pgxpool.Pool
 }
 
-// Инициализирует подключение к серверу postgres
-func New(ctx context.Context) *PG {
-	pwd := os.Getenv("go_thinknetica_films_password")
-	db, err := pgxpool.Connect(context.Background(), "postgres://postgres:"+pwd+"@localhost/go_thinknetica_films")
+// Инициализирует подключение к серверу postgres. Принимает контекст и строку для подключения
+func New(ctx context.Context, conn string) (*PG, error) {
+	var pg PG
+
+	db, err := pgxpool.Connect(context.Background(), conn)
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
+		return &pg, err
 	}
-	pg := PG{
+	pg = PG{
 		ctx: ctx,
 		db:  db,
 	}
-	return &pg
+	return &pg, err
 }
 
 // Закрывает подключения к postgres
