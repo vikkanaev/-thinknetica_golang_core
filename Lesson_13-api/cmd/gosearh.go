@@ -14,8 +14,6 @@ import (
 // Сервер Интернет-поисковика GoSearch.
 type gosearch struct {
 	scanner crawler.Interface
-	api     *api.API
-	router  *mux.Router
 
 	sites []string
 	depth int
@@ -33,16 +31,16 @@ func main() {
 
 	searcher.data = data
 
-	searcher.api.Endpoints(searcher.data)
-	http.ListenAndServe(":8080", searcher.router)
+	router := mux.NewRouter()
+	api := api.New(router, searcher.data)
+	api.Endpoints()
+	http.ListenAndServe(":8080", router)
 }
 
 // new создаёт объект и поисковика и возвращает указатель на него.
 func new() *gosearch {
 	gs := gosearch{}
 	gs.scanner = spider.New()
-	gs.router = mux.NewRouter()
-	gs.api = api.New(gs.router)
 	// gs.sites = []string{"https://go.dev", "https://golang.org/"}
 	gs.sites = []string{"https://go.dev"}
 	gs.depth = 2
