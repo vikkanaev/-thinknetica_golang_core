@@ -10,21 +10,19 @@ import (
 )
 
 type PG struct {
-	ctx context.Context
-	db  *pgxpool.Pool
+	db *pgxpool.Pool
 }
 
 // Инициализирует подключение к серверу postgres. Принимает контекст и строку для подключения
-func New(ctx context.Context, conn string) (*PG, error) {
+func New(conn string) (*PG, error) {
 	var pg PG
 
 	db, err := pgxpool.Connect(context.Background(), conn)
 	if err != nil {
-		return &pg, err
+		return nil, err
 	}
 	pg = PG{
-		ctx: ctx,
-		db:  db,
+		db: db,
 	}
 	return &pg, err
 }
@@ -35,7 +33,7 @@ func (pg *PG) Close() {
 }
 
 // Films Возвращает список фильмов. Если studioId = 0 - все фильмы, иначе фильтр по id-студии
-func (pg *PG) Films(studioId int) (films []storage.Film, err error) {
+func (pg *PG) Films(ctx context.Context, studioId int) (films []storage.Film, err error) {
 	sql := `
 		Select films.id, films.title, films.year, studios.id, studios.title
 		FROM films
@@ -46,9 +44,9 @@ func (pg *PG) Films(studioId int) (films []storage.Film, err error) {
 	}
 	sql = fmt.Sprintln(sql, ";")
 
-	rows, err := pg.db.Query(pg.ctx, sql)
+	rows, err := pg.db.Query(ctx, sql)
 	if err != nil {
-		return films, err
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -74,14 +72,14 @@ func (pg *PG) Films(studioId int) (films []storage.Film, err error) {
 }
 
 // AddFilms добавляет в БД массив фильмов одной транзакцией.
-func (pg *PG) AddFilms(films []storage.Film) error {
+func (pg *PG) AddFilms(ctx context.Context, films []storage.Film) error {
 	// начало транзакции
-	tx, err := pg.db.Begin(pg.ctx)
+	tx, err := pg.db.Begin(ctx)
 	if err != nil {
 		return err
 	}
 	// отмена транзакции в случае ошибки
-	defer tx.Rollback(pg.ctx)
+	defer tx.Rollback(ctx)
 
 	// пакетный запрос
 	var batch = &pgx.Batch{}
@@ -90,45 +88,47 @@ func (pg *PG) AddFilms(films []storage.Film) error {
 		batch.Queue(`INSERT INTO films(title, year, studio_id) VALUES ($1, $2, $3)`, film.Title, film.Year, film.StudioId)
 	}
 	// отправка пакета в БД (может выполняться для транзакции или соединения)
-	res := tx.SendBatch(pg.ctx, batch)
+	res := tx.SendBatch(ctx, batch)
 	// обязательная операция закрытия соединения
 	err = res.Close()
 	if err != nil {
 		return err
 	}
 	// подтверждение транзакции
-	return tx.Commit(pg.ctx)
+	return tx.Commit(ctx)
 }
 
 // Удаляет фильм с указанным id
-func (pg *PG) DelFilm(id int) (err error) {
+func (pg *PG) DelFilm(ctx context.Context, id int) (err error) {
 	// начало транзакции
-	tx, err := pg.db.Begin(pg.ctx)
+	tx, err := pg.db.Begin(ctx)
 	if err != nil {
 		return err
 	}
 	// отмена транзакции в случае ошибки
-	defer tx.Rollback(pg.ctx)
+	defer tx.Rollback(ctx)
 
 	// пакетный запрос
 	var batch = &pgx.Batch{}
 	// добавление заданий в пакет
+	// В данном слкчае транзакция не нужна, потому что я добавил в схему ON DELETE CASCADE
+	// Но оставлю это для примера транзакции
 	batch.Queue(`DELETE FROM films_actors WHERE film_id = $1`, id)
 	batch.Queue(`DELETE FROM films_directors WHERE film_id = $1`, id)
 	batch.Queue(`DELETE FROM films WHERE id = $1`, id)
 	// отправка пакета в БД (может выполняться для транзакции или соединения)
-	res := tx.SendBatch(pg.ctx, batch)
+	res := tx.SendBatch(ctx, batch)
 	// обязательная операция закрытия соединения
 	err = res.Close()
 	if err != nil {
 		return err
 	}
 	// подтверждение транзакции
-	return tx.Commit(pg.ctx)
+	return tx.Commit(ctx)
 }
 
-func (pg *PG) UpdateFilm(id int, film storage.Film) error {
+func (pg *PG) UpdateFilm(ctx context.Context, id int, film storage.Film) error {
 	sql := `UPDATE films SET title = $1, year = $2, studio_id = $3 WHERE id = $4;`
-	_, err := pg.db.Exec(pg.ctx, sql, film.Title, film.Year, film.StudioId, id)
+	_, err := pg.db.Exec(ctx, sql, film.Title, film.Year, film.StudioId, id)
 	return err
 }

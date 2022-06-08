@@ -10,15 +10,13 @@ import (
 
 type app struct {
 	storage storage.Interface
-	context context.Context
 }
 
 func new(conn string) (*app, error) {
 	app := app{}
 	var err error
 
-	app.context = context.Background()
-	app.storage, err = postgres.New(app.context, conn)
+	app.storage, err = postgres.New(conn)
 	if err != nil {
 		fmt.Print(err)
 		return nil, err
@@ -28,6 +26,7 @@ func new(conn string) (*app, error) {
 }
 
 func main() {
+	ctx := context.Background()
 	pwd := os.Getenv("go_thinknetica_films_password")
 	conn := "postgres://postgres:" + pwd + "@localhost/go_thinknetica_films"
 	a, err := new(conn)
@@ -41,14 +40,14 @@ func main() {
 
 	// Добавление фильмов
 	films := []storage.Film{{Title: "Generation Pi", Year: 1999, StudioId: 1}}
-	err = a.storage.AddFilms(films)
+	err = a.storage.AddFilms(ctx, films)
 	if err != nil {
 		fmt.Print(err)
 		return
 	}
 
 	// Получение списка фильмов.
-	data, err := a.storage.Films(0)
+	data, err := a.storage.Films(ctx, 0)
 	if err != nil {
 		fmt.Print(err)
 		return
@@ -56,14 +55,14 @@ func main() {
 	fmt.Printf("%+v\n", data)
 
 	// Удаление фильма
-	err = a.storage.DelFilm(1)
+	err = a.storage.DelFilm(ctx, 1)
 	if err != nil {
 		fmt.Print(err)
 		return
 	}
 
 	// Изменения параметров фильма
-	err = a.storage.UpdateFilm(2, storage.Film{Title: "Okay", Year: 2015, StudioId: 1})
+	err = a.storage.UpdateFilm(ctx, 2, storage.Film{Title: "Okay", Year: 2015, StudioId: 1})
 	if err != nil {
 		fmt.Print(err)
 		return
