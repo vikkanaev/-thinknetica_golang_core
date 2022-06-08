@@ -38,16 +38,16 @@ CREATE TABLE films (
 -- связь между фильмами и актерами
 CREATE TABLE films_actors (
     id BIGSERIAL PRIMARY KEY, -- первичный ключ
-    film_id BIGINT NOT NULL REFERENCES films(id),
-    actor_id INTEGER NOT NULL REFERENCES persons(id),
+    film_id BIGINT NOT NULL REFERENCES films(id) ON DELETE CASCADE,
+    actor_id INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE,
     UNIQUE(film_id, actor_id)
 );
 
 -- связь между фильмами и режисерами
 CREATE TABLE films_directors (
     id BIGSERIAL PRIMARY KEY, -- первичный ключ
-    film_id BIGINT NOT NULL REFERENCES films(id),
-    director_id INTEGER NOT NULL REFERENCES persons(id),
+    film_id BIGINT NOT NULL REFERENCES films(id) ON DELETE CASCADE,
+    director_id INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE,
     UNIQUE(film_id, director_id)
 );
 

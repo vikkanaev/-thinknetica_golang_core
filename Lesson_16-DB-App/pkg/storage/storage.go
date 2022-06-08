@@ -1,5 +1,7 @@
 package storage
 
+import "context"
+
 type Film struct {
 	ID       int
 	Title    string
@@ -13,14 +15,14 @@ type Interface interface {
 	Close()
 
 	// Возвращает список фильмов. Если studioId = 0 - все фильмы, иначе фильтр по id-студии
-	Films(int) ([]Film, error)
+	Films(context.Context, int) ([]Film, error)
 
 	// Добавляет в базу фильмы из переданного массива
-	AddFilms([]Film) error
+	AddFilms(context.Context, []Film) error
 
 	// Удаляет фильм с указанным id
-	DelFilm(int) error
+	DelFilm(context.Context, int) error
 
 	// Обновляет данные для фильма с указанным id
-	UpdateFilm(int, Film) error
+	UpdateFilm(context.Context, int, Film) error
 }
