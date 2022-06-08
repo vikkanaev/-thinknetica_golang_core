@@ -12,8 +12,8 @@ import (
 )
 
 type Signalman struct {
-	Data []pb.Message
 	mu   sync.Mutex
+	Data []pb.Message
 
 	// Композиция интерфейса.
 	pb.SignalmanServer
