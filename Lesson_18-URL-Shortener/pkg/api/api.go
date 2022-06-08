@@ -2,20 +2,25 @@ package api
 
 import (
 	"encoding/json"
+	"math/rand"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/mux"
 )
 
 type API struct {
+	mu   sync.Mutex
+	data map[string]string
+
 	router *mux.Router
-	data   map[string]string
-	mu     sync.Mutex
 }
 
 // New создаёт объект API.
 func New(r *mux.Router) *API {
+	rand.Seed(time.Now().UnixNano())
+
 	api := API{
 		router: r,
 		data:   make(map[string]string),
