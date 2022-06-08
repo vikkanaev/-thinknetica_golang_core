@@ -5,7 +5,6 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -39,9 +38,6 @@ func (api *API) newUrl(w http.ResponseWriter, r *http.Request) {
 		responseErr(w, http.StatusInternalServerError, "To many urls in memory")
 	}
 
-	api.mu.Lock()
-	defer api.mu.Unlock()
-
 	var d struct{ Url string }
 	err := json.NewDecoder(r.Body).Decode(&d)
 	if err != nil {
@@ -53,6 +49,7 @@ func (api *API) newUrl(w http.ResponseWriter, r *http.Request) {
 	// Если занят - повторяем заново
 	// Этот алгоритм явно будет работать тем медленнее, чем ближе мы к максимальному числу записей
 	shortUrl := ""
+	api.mu.Lock()
 	for {
 		shortUrl = randSeq(urlLen)
 		res := api.data[shortUrl]
@@ -61,6 +58,8 @@ func (api *API) newUrl(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	api.data[shortUrl] = d.Url
+	api.mu.Unlock()
+
 	responseOk(w, shortUrl, http.StatusOK)
 }
 
@@ -72,12 +71,11 @@ func (api *API) url(w http.ResponseWriter, r *http.Request) {
 	if url == "" {
 		responseErr(w, http.StatusNotFound, nil)
 	}
-	responseOk(w, url, http.StatusOK)
+	http.Redirect(w, r, url, http.StatusSeeOther)
 }
 
 // Генерирует случайную последовательность заданной динны из фиксированного набора символов
 func randSeq(n int) string {
-	rand.Seed(time.Now().UnixNano())
 	letters := []rune(shortChars)
 
 	b := make([]rune, n)
