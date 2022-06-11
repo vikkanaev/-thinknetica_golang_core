@@ -4,31 +4,28 @@ import (
 	"encoding/json"
 	"math/rand"
 	"net/http"
-	"sync"
 	"thinknetica_golang_core/Lesson_19-queue/1-Shortener/pkg/queue"
+	"thinknetica_golang_core/Lesson_19-queue/1-Shortener/pkg/storage"
 	"time"
 
 	"github.com/gorilla/mux"
 )
 
 type API struct {
-	mu   sync.Mutex
-	data map[string]string
-
-	router *mux.Router
-	queue  *queue.Queue
+	storage *storage.Storage
+	router  *mux.Router
+	queue   *queue.Queue
 }
 
 // New создаёт объект API.
-func New(r *mux.Router, q *queue.Queue) *API {
+func New(r *mux.Router, q *queue.Queue, s *storage.Storage) *API {
+	// тут или в storage ?
 	rand.Seed(time.Now().UnixNano())
-	// обнуляем статистику при старте сервиса
-	q.PruneStat()
 
 	api := API{
-		router: r,
-		queue:  q,
-		data:   make(map[string]string),
+		router:  r,
+		queue:   q,
+		storage: s,
 	}
 	return &api
 }
