@@ -1,0 +1,18 @@
+version: "3"
+services:
+  shortener-mongo:
+    image: mongo:latest
+    volumes:
+      - mongo:/data/db
+    ports:
+      - 27017:27017
+  rabbitmq:
+    image: rabbitmq:3.10-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+
+volumes:
+  mongo:
+    # redis:
+
