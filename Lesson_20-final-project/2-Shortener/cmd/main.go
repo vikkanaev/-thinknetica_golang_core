@@ -33,12 +33,40 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	// обнуляем статистику при старте сервиса
-	q.PruneStat()
+
+	// Обнуляем статистику при старте сервиса и перезаливаем данные
+	err = setupAnalytics(storage, q)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	// Не забываем закрывать ресурсы
 	defer q.Close()
+	defer storage.Close()
 
 	api := api.New(router, q, storage)
 	api.Endpoints()
 	http.ListenAndServe(webAddr, router)
+}
+
+// Обнуляем статистику при старте сервиса и перезаливаем данные
+func setupAnalytics(s *storage.Storage, q *queue.Queue) error {
+	// обнуляем статистику при старте сервиса
+	q.PruneStat()
+
+	// отправляем все ссылки в аналитику
+	urls, err := s.Urls()
+	if err != nil {
+		return err
+	}
+
+	// Отпрвка отдельным потоком что бы не тормозить старт сервиса.
+	go func() {
+		for _, doc := range urls {
+			q.NewUrl(doc.Long)
+		}
+	}()
+
+	return nil
 }

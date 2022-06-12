@@ -10,7 +10,7 @@ import (
 type Queue struct {
 	conn *amqp.Connection
 	ch   *amqp.Channel
-	q    amqp.Queue
+	name string
 }
 
 // Сообщение для обмена между сервисами Shortner и Analytics
@@ -41,23 +41,24 @@ func New(cred string, name string) (*Queue, error) {
 		return nil, err
 	}
 
-	q, err := ch.QueueDeclare(
-		name,  // name
-		false, // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // no-wait
-		nil,   // arguments
+	err = ch.ExchangeDeclare(
+		name,     // name
+		"fanout", // type
+		true,     // durable
+		false,    // auto-deleted
+		false,    // internal
+		false,    // no-wait
+		nil,      // arguments
 	)
 	if err != nil {
-		log.Println("Failed to declare a queue", err)
+		log.Println("Failed to declare an exchange", err)
 		return nil, err
 	}
 
 	queue := Queue{
 		conn: conn,
 		ch:   ch,
-		q:    q,
+		name: name,
 	}
 	return &queue, nil
 }
@@ -82,10 +83,10 @@ func (queue *Queue) publish(m Message) error {
 	}
 
 	err = queue.ch.Publish(
-		"",           // exchange
-		queue.q.Name, // routing key
-		false,        // mandatory
-		false,        // immediate
+		queue.name, // exchange
+		"",         // routing key
+		false,      // mandatory
+		false,      // immediate
 		amqp.Publishing{
 			ContentType: "application/json",
 			Body:        body,
