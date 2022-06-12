@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"sync"
+	"thinknetica_golang_core/Lesson_20-final-project/3-Cache/pkg/storage"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -31,8 +32,7 @@ const (
 )
 
 // Подключается к очереди сообщений
-// func New(cred string, name string, s *storage.Storage) (*Queue, error) {
-func New(cred string, name string) (*Queue, error) {
+func New(cred string, name string, s *storage.Storage) (*Queue, error) {
 	conn, err := amqp.Dial(cred)
 	if err != nil {
 		log.Println("Failed to connect to RabbitMQ", err)
