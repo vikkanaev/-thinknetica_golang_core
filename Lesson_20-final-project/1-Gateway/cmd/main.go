@@ -22,6 +22,9 @@ func main() {
 			Urls:   "http://localhost:8080/api/v1/urls",
 			Url:    "http://localhost:8080/api/v1/urls",
 		},
+		Cache: rpc.Cache{
+			Url: "http://localhost:8082/api/v1/urls",
+		},
 	}
 	rpc := rpc.New(config)
 

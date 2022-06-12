@@ -11,6 +11,7 @@ type RPC struct {
 
 type Config struct {
 	Shortner Shortner
+	Cache    Cache
 }
 
 func New(c Config) *RPC {

@@ -32,9 +32,22 @@ func (api *API) newUrl(w http.ResponseWriter, r *http.Request) {
 func (api *API) url(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	key := vars["key"]
-	log.Println("vars returns", key)
+	log.Println("Short URL", key)
 
-	url, err := api.rpc.Url(key)
+	// Проверяем в кеше
+	url, err := api.rpc.CachedUrl(key)
+	if err != nil {
+		responseErr(w, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+	log.Println("rpc.CachedUrl returns", url)
+	if url != "" {
+		http.Redirect(w, r, url, http.StatusSeeOther)
+		return
+	}
+
+	// Если не нашли в кеше проверяем в хранилище
+	url, err = api.rpc.Url(key)
 	if err != nil {
 		responseErr(w, http.StatusUnprocessableEntity, err.Error())
 		return
