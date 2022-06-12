@@ -41,12 +41,14 @@ var (
 
 func New(conn string, dbName string, collName string) (*Storage, error) {
 	rand.Seed(time.Now().UnixNano())
+
 	// подключение к СУБД MongoDB
 	mongoOpts := options.Client().ApplyURI(conn)
 	client, err := mongo.Connect(context.Background(), mongoOpts)
 	if err != nil {
 		return nil, err
 	}
+
 	s := Storage{
 		client:         client,
 		databaseName:   dbName,

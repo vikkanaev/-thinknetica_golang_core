@@ -29,11 +29,10 @@ func main() {
 	}
 	// Не забываем закрывать ресурсы
 	defer q.Close()
-	// Закрыть сторедж тут
+	defer storage.Close()
 
 	api := api.New(router, q, storage)
 	api.Endpoints()
 	go http.ListenAndServe(webAddr, router)
 	q.Consume()
-
 }

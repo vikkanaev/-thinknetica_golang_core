@@ -29,7 +29,7 @@ const (
 	// Создание нового url
 	newUrl = "NewUrl"
 	// Обнулить статистику
-	pruneStat = "PruneStat"
+	prune = "Prune"
 )
 
 // Подключается к очереди сообщений
@@ -135,7 +135,7 @@ func (queue *Queue) handleEvent(m Message) {
 	switch m.Event {
 	case newUrl:
 		queue.storage.NewUrlHandler(m.LongUrl)
-	case pruneStat:
+	case prune:
 		queue.storage.PruneStatHandler()
 	default:
 		log.Printf("Unknown event %v", m.Event)
