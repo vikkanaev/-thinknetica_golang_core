@@ -39,4 +39,5 @@ require (
 	golang.org/x/sys v0.0.0-20220608164250-635b8c9b7f68 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20220608133413-ed9918b62aac // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
