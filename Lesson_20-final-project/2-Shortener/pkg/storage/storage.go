@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type url struct {
+type Url struct {
 	Long  string `bson:"long"`
 	Short string `bson:"short"`
 }
@@ -54,7 +54,7 @@ func New(conn string, dbName string, collName string) (*Storage, error) {
 }
 
 // Возвращает все документы из базы
-func (s *Storage) Urls() ([]url, error) {
+func (s *Storage) Urls() ([]Url, error) {
 	filter := bson.D{}
 	return s.find(filter)
 }
@@ -88,7 +88,7 @@ func (s *Storage) NewUrl(longUrl string) (string, error) {
 		}
 	}
 	ctx := context.Background()
-	data := []url{{Long: longUrl, Short: shortUrl}}
+	data := []Url{{Long: longUrl, Short: shortUrl}}
 	s.insertUrls(ctx, data)
 
 	return shortUrl, nil
@@ -117,7 +117,7 @@ func randSeq(n int) string {
 }
 
 // Возвращает массив документов из Монго
-func (s *Storage) find(filter bson.D) ([]url, error) {
+func (s *Storage) find(filter bson.D) ([]Url, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -130,9 +130,9 @@ func (s *Storage) find(filter bson.D) ([]url, error) {
 	}
 	defer cur.Close(ctx)
 
-	var data []url
+	var data []Url
 	for cur.Next(ctx) {
-		var l url
+		var l Url
 		err := cur.Decode(&l)
 		if err != nil {
 			return nil, err
@@ -144,7 +144,7 @@ func (s *Storage) find(filter bson.D) ([]url, error) {
 }
 
 // Возвращает один документ из Монги
-func (s *Storage) findOne(filter bson.D) (u url, err error) {
+func (s *Storage) findOne(filter bson.D) (u Url, err error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -171,7 +171,7 @@ func (s *Storage) countDocs(ctx context.Context) (int64, error) {
 }
 
 // Вставляет в Монгу массив документов.
-func (s *Storage) insertUrls(ctx context.Context, data []url) error {
+func (s *Storage) insertUrls(ctx context.Context, data []Url) error {
 	collection := s.client.Database(s.databaseName).Collection(s.collectionName)
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -183,4 +183,9 @@ func (s *Storage) insertUrls(ctx context.Context, data []url) error {
 		}
 	}
 	return nil
+}
+
+// Закрываем соединения с монгой
+func (s *Storage) Close() {
+	s.client.Disconnect(context.Background())
 }
