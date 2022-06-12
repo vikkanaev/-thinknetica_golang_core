@@ -27,7 +27,7 @@ const (
 	// Создание нового url
 	newUrl = "NewUrl"
 	// Обнулить статистику
-	pruneStat = "PruneStat"
+	pruneStat = "Prune"
 )
 
 // Подключается к очереди сообщений

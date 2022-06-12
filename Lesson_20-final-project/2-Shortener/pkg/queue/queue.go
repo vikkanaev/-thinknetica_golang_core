@@ -25,7 +25,7 @@ const (
 	// Создание нового url
 	newUrl = "NewUrl"
 	// Обнулить статистику
-	pruneStat = "PruneStat"
+	prune = "Prune"
 )
 
 // Подключается к очереди сообщений
@@ -72,7 +72,7 @@ func (queue *Queue) NewUrl(longUrl string, shortUrl string) error {
 
 // Отправка в аналитику событие "Обнули статистику"
 func (queue *Queue) PruneStat() error {
-	m := Message{Event: pruneStat, LongUrl: "", ShortUrl: ""}
+	m := Message{Event: prune, LongUrl: "", ShortUrl: ""}
 	return queue.publish(m)
 }
 

@@ -75,3 +75,8 @@ func (s *Storage) PruneHandler() error {
 	log.Printf("FlushAll in Redis")
 	return s.client.FlushAll(context.Background()).Err()
 }
+
+// Закрываем соединение с Редисом
+func (s *Storage) Close() error {
+	return s.client.Close()
+}

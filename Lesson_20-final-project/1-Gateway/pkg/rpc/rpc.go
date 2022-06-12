@@ -47,5 +47,4 @@ func post(url string, r *http.Request) (string, error) {
 		return "", err
 	}
 	return string(body), nil
-
 }
