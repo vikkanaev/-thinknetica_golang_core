@@ -1,32 +1,77 @@
 package storage
 
 import (
+	"context"
+	"log"
 	"sync"
+	"time"
+
+	"github.com/go-redis/redis/v8"
 )
 
 type Storage struct {
 	mu sync.Mutex
-	// data Stat
-	// urls []string
+
+	client *redis.Client
+	ttl    time.Duration
 }
 
 type Url struct {
-	Long  string `bson:"long"`
-	Short string `bson:"short"`
+	Long  string
+	Short string
 }
 
-func New() *Storage {
-	s := Storage{}
+func New(conn string, ttl time.Duration) *Storage {
+	client := redis.NewClient(&redis.Options{
+		Addr:     conn,
+		Password: "", // без пароля
+		DB:       0,  // БД по умолчанию
+	})
+	s := Storage{
+		client: client,
+		ttl:    ttl,
+	}
 	return &s
 }
 
+// Возвращает полную ссылку по данному сокращению
 func (s *Storage) Url(shortUrl string) string {
-	var str string
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if shortUrl == "123" {
-		return "http://google.com"
+
+	key := "urls:" + shortUrl
+	url, err := s.client.Get(context.Background(), key).Result()
+	log.Printf("Redis returns  %v", url)
+	if err != nil {
+		return ""
 	}
 
-	return str
+	return url
+}
+
+// UpdateCache обновляет данные в кэше Redis.
+func (s *Storage) UpdateCache(urls []Url) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for _, u := range urls {
+		log.Printf("Add to Redis %v", u)
+
+		key := "urls:" + u.Short
+		err := s.client.Set(context.Background(), key, u.Long, s.ttl).Err()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Удаляет все ключи из Redis
+func (s *Storage) PruneHandler() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	log.Printf("FlushAll in Redis")
+	return s.client.FlushAll(context.Background()).Err()
 }

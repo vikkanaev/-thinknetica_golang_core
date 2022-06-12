@@ -2,9 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"math/rand"
 	"net/http"
-	"time"
 
 	"thinknetica_golang_core/Lesson_20-final-project/1-Gateway/pkg/rpc"
 
@@ -18,9 +16,6 @@ type API struct {
 
 // New создаёт объект API.
 func New(r *mux.Router, rpс *rpc.RPC) *API {
-	// тут или в storage ?
-	rand.Seed(time.Now().UnixNano())
-
 	api := API{
 		router: r,
 		rpc:    rpс,

@@ -15,7 +15,7 @@ const (
 func main() {
 	router := mux.NewRouter()
 
-	// Вот тут прям просится парсинг yaml. Отдельный пакет configReader?
+	// Вот тут прям просится парсинг yaml. Отдельный пакет config или часть пакета rpc?
 	config := rpc.Config{
 		Shortner: rpc.Shortner{
 			NewUrl: "http://localhost:8080/api/v1/url",
