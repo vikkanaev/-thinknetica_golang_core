@@ -64,7 +64,7 @@ func setupAnalytics(s *storage.Storage, q *queue.Queue) error {
 	// Отпрвка отдельным потоком что бы не тормозить старт сервиса.
 	go func() {
 		for _, doc := range urls {
-			q.NewUrl(doc.Long)
+			q.NewUrl(doc.Long, doc.Short)
 		}
 	}()
 

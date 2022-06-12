@@ -10,17 +10,18 @@ import (
 )
 
 type Queue struct {
-	conn *amqp.Connection
-	ch   *amqp.Channel
-	q    amqp.Queue
-	name string
-	// storage *storage.Storage
+	conn    *amqp.Connection
+	ch      *amqp.Channel
+	q       amqp.Queue
+	name    string
+	storage *storage.Storage
 }
 
 // Сообщение для обмена между сервисами Shortner и Analytics
 type Message struct {
-	Event string
-	Args  string
+	Event    string
+	LongUrl  string
+	ShortUrl string
 }
 
 // Название эвентов поожим в константы
@@ -85,11 +86,11 @@ func New(cred string, name string, s *storage.Storage) (*Queue, error) {
 	}
 
 	queue := Queue{
-		conn: conn,
-		ch:   ch,
-		q:    q,
-		name: name,
-		// storage: s,
+		conn:    conn,
+		ch:      ch,
+		q:       q,
+		name:    name,
+		storage: s,
 	}
 	return &queue, nil
 }
@@ -133,11 +134,11 @@ func (queue *Queue) Consume() error {
 func (queue *Queue) handleEvent(m Message) {
 	switch m.Event {
 	case newUrl:
-		// queue.storage.NewUrlHandler(m.Args)
-		log.Printf("newUrl event with %v", m.Args)
+		url := storage.Url{Long: m.LongUrl, Short: m.ShortUrl}
+		queue.storage.UpdateCache([]storage.Url{url})
 	case pruneStat:
-		// queue.storage.PruneStatHandler()
-		log.Printf("pruneStat event with %v", m.Args)
+		queue.storage.PruneHandler()
+		log.Printf("pruneStat event with %v", m.LongUrl)
 	default:
 		log.Printf("Unknown event %v", m.Event)
 	}

@@ -2,11 +2,9 @@ package api
 
 import (
 	"encoding/json"
-	"math/rand"
 	"net/http"
 	"thinknetica_golang_core/Lesson_20-final-project/2-Shortener/pkg/queue"
 	"thinknetica_golang_core/Lesson_20-final-project/2-Shortener/pkg/storage"
-	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -19,9 +17,6 @@ type API struct {
 
 // New создаёт объект API.
 func New(r *mux.Router, q *queue.Queue, s *storage.Storage) *API {
-	// тут или в storage ?
-	rand.Seed(time.Now().UnixNano())
-
 	api := API{
 		router:  r,
 		queue:   q,

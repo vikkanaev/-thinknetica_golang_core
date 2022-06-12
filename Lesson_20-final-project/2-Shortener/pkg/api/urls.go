@@ -39,7 +39,7 @@ func (api *API) newUrl(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	api.queue.NewUrl(d.Url)
+	api.queue.NewUrl(d.Url, shortUrl)
 
 	responseOk(w, shortUrl, http.StatusOK)
 }

@@ -19,8 +19,9 @@ type Queue struct {
 
 // Сообщение для обмена между сервисами Shortner и Analytics
 type Message struct {
-	Event string
-	Args  string
+	Event    string
+	LongUrl  string
+	ShortUrl string
 }
 
 // Название эвентов поожим в константы
@@ -133,7 +134,7 @@ func (queue *Queue) Consume() error {
 func (queue *Queue) handleEvent(m Message) {
 	switch m.Event {
 	case newUrl:
-		queue.storage.NewUrlHandler(m.Args)
+		queue.storage.NewUrlHandler(m.LongUrl)
 	case pruneStat:
 		queue.storage.PruneStatHandler()
 	default:

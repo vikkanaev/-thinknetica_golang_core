@@ -15,8 +15,9 @@ type Queue struct {
 
 // Сообщение для обмена между сервисами Shortner и Analytics
 type Message struct {
-	Event string
-	Args  string
+	Event    string
+	LongUrl  string
+	ShortUrl string
 }
 
 // Название эвентов поожим в константы
@@ -64,14 +65,14 @@ func New(cred string, name string) (*Queue, error) {
 }
 
 // Отправка в аналитику событие "Новый url"
-func (queue *Queue) NewUrl(url string) error {
-	m := Message{Event: newUrl, Args: url}
+func (queue *Queue) NewUrl(longUrl string, shortUrl string) error {
+	m := Message{Event: newUrl, LongUrl: longUrl, ShortUrl: shortUrl}
 	return queue.publish(m)
 }
 
 // Отправка в аналитику событие "Обнули статистику"
 func (queue *Queue) PruneStat() error {
-	m := Message{Event: pruneStat, Args: ""}
+	m := Message{Event: pruneStat, LongUrl: "", ShortUrl: ""}
 	return queue.publish(m)
 }
 
