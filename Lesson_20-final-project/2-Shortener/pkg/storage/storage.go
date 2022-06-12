@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"errors"
-	"log"
 	"math"
 	"math/rand"
 	"sync"
@@ -51,7 +50,6 @@ func New(conn string, dbName string, collName string) (*Storage, error) {
 		databaseName:   dbName,
 		collectionName: collName,
 	}
-	log.Println("Started storage with")
 	return &s, nil
 }
 
