@@ -3,7 +3,7 @@ package rpc
 import "strings"
 
 type Cache struct {
-	Url string
+	Url string `yaml:"url"`
 }
 
 // Запрашивает полную ссылку по короткой из кеша

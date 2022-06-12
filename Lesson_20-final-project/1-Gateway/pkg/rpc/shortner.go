@@ -6,9 +6,9 @@ import (
 )
 
 type Shortner struct {
-	Urls   string
-	NewUrl string
-	Url    string
+	Urls   string `yaml:"urls"`
+	NewUrl string `yaml:"newUrl"`
+	Url    string `yaml:"url"`
 }
 
 // Запрашивает все пары ссылка-сокращение из хранилища ссылок

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"thinknetica_golang_core/Lesson_20-final-project/1-Gateway/pkg/api"
 	"thinknetica_golang_core/Lesson_20-final-project/1-Gateway/pkg/rpc"
@@ -9,22 +10,17 @@ import (
 )
 
 const (
-	webAddr = ":3000"
+	webAddr  = ":3000"
+	confFile = "./Lesson_20-final-project/1-Gateway/conf.yaml"
 )
 
 func main() {
 	router := mux.NewRouter()
-
-	// Вот тут прям просится парсинг yaml. Отдельный пакет config или часть пакета rpc?
-	config := rpc.Config{
-		Shortner: rpc.Shortner{
-			NewUrl: "http://localhost:8080/api/v1/url",
-			Urls:   "http://localhost:8080/api/v1/urls",
-			Url:    "http://localhost:8080/api/v1/urls",
-		},
-		Cache: rpc.Cache{
-			Url: "http://localhost:8082/api/v1/urls",
-		},
+	// Читаем конфиг из yaml файла
+	config, err := rpc.ReadConfig(confFile)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
 	rpc := rpc.New(config)
 
