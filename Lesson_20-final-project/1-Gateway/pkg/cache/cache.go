@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -30,6 +31,11 @@ func (c *Cache) Url(shortUrl string) (string, error) {
 
 	// удаляем кавычки, которые есть внутри строки
 	data := strings.Replace(string(resp), "\"", "", -1)
+
+	if data == "" {
+		return data, errors.New("url not found")
+	}
+
 	return data, nil
 }
 
