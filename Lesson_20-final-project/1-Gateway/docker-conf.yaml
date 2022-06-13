@@ -1,0 +1,6 @@
+shortner:
+  url: "http://shortener:8080/api/v1/urls"
+  urls: "http://shortener:8080/api/v1/urls"
+  newUrl: "http://shortener:8080/api/v1/url"
+cache:
+  url: "http://cache:8082/api/v1/urls"

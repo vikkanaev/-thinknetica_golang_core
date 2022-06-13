@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"thinknetica_golang_core/Lesson_20-final-project/2-Shortener/pkg/api"
 	"thinknetica_golang_core/Lesson_20-final-project/2-Shortener/pkg/queue"
 	"thinknetica_golang_core/Lesson_20-final-project/2-Shortener/pkg/storage"
@@ -10,14 +11,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const (
-	queueConnectionString = "amqp://guest:guest@localhost:5672/"
-	queueName             = "UrlsApp"
-	webAddr               = ":8080"
+var (
+	queueConnectionString = getEnv("QUEUE_CONN", "amqp://guest:guest@localhost:5672/")
+	queueName             = getEnv("QUEUE_NAME", "UrlsApp")
+	webAddr               = getEnv("WEB_ADDR", ":8080")
 
-	mongoConn     = "mongodb://localhost:27017/" // строка подключения к Монго
-	mongoDbName   = "shortener"                  // имя БД в Монго
-	mongoCollName = "urls"                       // имя коллекции в Монго
+	mongoConn     = getEnv("MONGO_CONN", "mongodb://localhost:27017/") // строка подключения к Монго
+	mongoDbName   = getEnv("MONGO_DB_NAME", "shortener")               // имя БД в Монго
+	mongoCollName = getEnv("MONGO_COL_NAME", "urls")                   // имя коллекции в Монго
 )
 
 func main() {
@@ -69,4 +70,12 @@ func setupAnalytics(s *storage.Storage, q *queue.Queue) error {
 	}()
 
 	return nil
+}
+
+// Читаем переменную окружения или значение по умолчанию
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
 }
