@@ -5,7 +5,9 @@ services:
       context: .
       dockerfile: ./Dockerfile.gw
     environment:
-      CONF_FILE: "Lesson_20-final-project/1-Gateway/docker-conf.yaml"
+      SHORTNER_NEW_URL: "http://shortener:8080/api/v1/url"
+      SHORTNER_URL: "http://shortener:8080/api/v1/urls"
+      CACHE_URL: "http://cache:8082/api/v1/urls"
     ports:
       - 3000:3000
     depends_on:

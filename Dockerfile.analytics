@@ -7,6 +7,6 @@ RUN go mod download
 
 COPY ./Lesson_20-final-project/4-Analytics/ ./Lesson_20-final-project/4-Analytics/ 
 
-RUN go build -o /Analytics ./Lesson_20-final-project/4-Analytics/cmd/main.go
+RUN go build -o /Analytics ./Lesson_20-final-project/4-Analytics/cmd/analytics/main.go
 
 CMD [ "/Analytics" ]

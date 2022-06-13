@@ -7,6 +7,6 @@ RUN go mod download
 
 COPY ./Lesson_20-final-project/1-Gateway/ ./Lesson_20-final-project/1-Gateway/ 
 
-RUN go build -o /Gateway ./Lesson_20-final-project/1-Gateway/cmd/main.go
+RUN go build -o /Gateway ./Lesson_20-final-project/1-Gateway/cmd/gateway/main.go
 
 CMD [ "/Gateway" ]
