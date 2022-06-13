@@ -1,0 +1,12 @@
+FROM golang:1.18.2
+
+WORKDIR /app
+
+COPY go.* ./
+RUN go mod download
+
+COPY ./Lesson_20-final-project/3-Cache/ ./Lesson_20-final-project/3-Cache/ 
+
+RUN go build -o /Cache ./Lesson_20-final-project/3-Cache/cmd/main.go
+
+CMD [ "/Cache" ]
